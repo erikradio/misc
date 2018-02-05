@@ -10,7 +10,7 @@ ts=time.time()
 st=datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d')
 
 volumesDict={}
-with open(dataFile, 'rU') as csvfile:
+with open(dataFile, 'rU', encoding='latin1') as csvfile:
 
     reader = csv.DictReader(csvfile)
     # columnList=next(reader)
