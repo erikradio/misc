@@ -18,7 +18,7 @@ if __name__ == '__main__':
     # Loop over chunks
     total = None
     while True:
-        ecollections='https://api-na.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections?view=full&expand=None&is_local=True&limit=100&offset='+str(offset)+'&apikey=l7xx70b8ebb20fe94d4aa6fe7e5d540733d1&format=json'
+        ecollections='https://api-na.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections?view=full&expand=None&is_local=True&limit=100&offset='+str(offset)+'&apikey=xxxxxx&format=json'
         print("GET {}".format(ecollections))
         this_chunk = requests.get(ecollections)
         this_chunk.raise_for_status()
