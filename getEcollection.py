@@ -1,17 +1,5 @@
-import csv
-import sys
 import requests
 import json
-from xml.etree import ElementTree as ET
-# class SomeSillyAPI:
-#     silly_example_data = [x for x in range(10000)]
-#     hard_limit = 100
-#
-#     @classmethod
-#     def gimme_data(cls, offset, limit=100):
-#         if limit > cls.hard_limit:
-#             limit = cls.hard_limit
-#         return cls.silly_example_data[offset:offset+limit]
 
 if __name__ == '__main__':
     # I want all the data, the API will only give me chunks
@@ -28,24 +16,40 @@ if __name__ == '__main__':
     # Lets get it
 
     # Loop over chunks
+    total = None
     while True:
-        ecollections='https://api-eu.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections?view=full&expand=None&is_local=True&limit=100&offset='+str(offset)+'&apikey=xxxxx&format=json'
-        # x=requests.get(ecollections)
+        ecollections='https://api-na.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections?view=full&expand=None&is_local=True&limit=100&offset='+str(offset)+'&apikey=l7xx70b8ebb20fe94d4aa6fe7e5d540733d1&format=json'
+        print("GET {}".format(ecollections))
         this_chunk = requests.get(ecollections)
-        json_chunk = json.loads(this_chunk.text)
+        this_chunk.raise_for_status()
+        print("GET complete")
+        print("Parsing as JSON")
+        this_chunk_json = this_chunk.json()
+        print("Parsed as JSON")
 
-        # Did it return anything? If not the resource is exhausted, stop
+        # Validate our response has records in it, otherwise throw
+        # an exception
+        if this_chunk_json.get('electronic_collection') is None:
+            raise RuntimeError("No records in the response!")
 
-        if len(json_chunk) == 0:
-            break
-        # # I asked for a lot - but the API has a limit, how much did I get?
-        how_many_in_the_chunk = len(json_chunk)
+        # Grab the total on the first run
+        if total is None:
+            total = this_chunk_json['total_record_count']
 
+        # Count how many responses we got
+        how_many_in_the_chunk = len(this_chunk_json['electronic_collection'])
 
-        print(how_many_in_the_chunk)
-        # # Now I want the ones after that
+        # Gather the responses
+        for record in this_chunk_json['electronic_collection']:
+            all_the_data.append(record)
+
+        # Increment our offset
         offset = offset + how_many_in_the_chunk
-        # # Add this chunk to our list of all of it
-        all_the_data = all_the_data + json_chunk
-#
-print(all_the_data)
+
+        # End cases
+        if how_many_in_the_chunk == 0 or len(all_the_data) == total:
+            break
+
+    dump_file = "test.json"
+    with open(dump_file, 'w') as f:
+        json.dump(all_the_data, f)
