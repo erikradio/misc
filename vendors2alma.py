@@ -3,9 +3,6 @@ import csv, sys, time, datetime, xml.etree.ElementTree as ET
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 
 # https://developers.exlibrisgroup.com/resources/xsd/rest_vendor.xsd
-
-#https://developers.exlibrisgroup.com/alma/apis/xsd/rest_vendor.xsd
-
 xmlFile = 'newVendors.xml'
 xmlData = open(xmlFile, 'w')
 # dataFile=sys.argv[1]
@@ -21,18 +18,20 @@ tree = ET.ElementTree(root)
 
 
 
-with open(sys.argv[0], 'rU',errors='ignore') as csvfile:
+with open(sys.argv[1], 'rU',errors='ignore') as csvfile:
     reader = csv.DictReader(csvfile)
+
 
 
     for row in reader:
 
-        record = SubElement(root, 'vendor')
-        code = SubElement(record,'code')
+
+        vendor = SubElement(root, 'vendor')
+        code = SubElement(vendor,'code')
         code.text = row['code']
-        name = SubElement(record,'name')
+        name = SubElement(vendor,'name')
         name.text = row['name']
-        contactInfo = SubElement(record,'contact_info')
+        contactInfo = SubElement(vendor,'contact_info')
         addresses = SubElement(contactInfo, 'addresses')
         address = SubElement(addresses, 'address')
         address.set('preferred','true')
@@ -45,7 +44,7 @@ with open(sys.argv[0], 'rU',errors='ignore') as csvfile:
         city.text = row['city']
 
         if len(row['state_province']) > 0:
-            stateprov = SubElement('address', 'state_province')
+            stateprov = SubElement(address, 'state_province')
             stateprov.text = row['state_province']
         if len(row['postal_code']) > 0:
             postalcode = SubElement(address, 'postal_code')
@@ -55,12 +54,14 @@ with open(sys.argv[0], 'rU',errors='ignore') as csvfile:
         address_type = SubElement(address_types, 'address_type')
         address_type.text = row['address_types']
 
+        emails = SubElement(contactInfo, 'emails')
+        email = SubElement(emails, 'email')
+        email.set('preferred', 'true')
+        emailaddress = SubElement(email,'email_address')
         if len(row['email_address']) > 0:
-            emails = SubElement(contactInfo, 'emails')
-            email = SubElement(emails, 'email')
-            email.set('preferred', 'true')
-            emailaddress = SubElement(email,'email_address')
             emailaddress.text = row['email_address']
+        else:
+            emailaddress.text = 'No email available'
 
         if len(row['phone_number']) > 0:
             phones = SubElement(contactInfo, 'phones')
@@ -84,23 +85,30 @@ with open(sys.argv[0], 'rU',errors='ignore') as csvfile:
         vendorCurrencies = SubElement(vendor, 'vendor_currencies')
         currency = SubElement(vendorCurrencies, 'currency')
         currency.set('desc', 'US Dollar')
-        currecny.text = 'USD'
+        currency.text = 'USD'
 
         ediInfo = SubElement(vendor, 'edi_info')
         ediCode = SubElement(ediInfo,'code')
         ediCode.text = row['code']
 
+        perOrgUnits = SubElement(vendor, 'per_organization_units')
+        perOrgUnit = SubElement(perOrgUnits, 'per_organization_unit')
+        orgUnit = SubElement(perOrgUnit, 'organization_unit')
+        orgUnit.text = 'azu'
+        orgCode = SubElement(perOrgUnit, 'edi_code')
+        orgCode.text = row['code']
         # add per org unit
 
         eanAccounts = SubElement(vendor, 'ean_accounts')
         eanAccount = SubElement(eanAccounts, 'ean_account')
         eanAccount.text = row['code']
-        eanCode = # NEED EAN CODE
+        eanCode = SubElement(eanAccount, 'ean_code')
+        eanCode.text = '123456'
 
         # print tostring(root)
 
         contactPerson = SubElement(vendor, 'contact_person')
-        contact_person.text = 'None Listed'
+        contactPerson.text = 'None Listed'
 
 
-tree.write('newBooks.xml',xml_declaration=True, encoding="UTF-8")
+tree.write('newVendors.xml',xml_declaration=True, encoding="UTF-8")
