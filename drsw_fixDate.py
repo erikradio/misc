@@ -3,7 +3,9 @@ import sys, re, uuid
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 import copy
-from datetime import datetime
+import datetime
+import dateutil.parser
+import arrow
 
 
 
@@ -25,7 +27,7 @@ def updateValues(root):
 
     infile_path = sys.argv[1]
 
-    time = datetime.now().strftime('%Y-%m-%d')
+    # time = datetime.now().strftime('%Y-%m-%d')
     #fix eadheader
     # print (root)
     #look for #### ####
@@ -33,15 +35,39 @@ def updateValues(root):
     #look for ##-##-#### ##-##-####
     pattern2 = '\d{2}-\d{2}-\d{4}\s\d{2}-\d{2}-\d{4}'
     for doc in root:
-        for field in doc.findall("field[@name='date_t']"):
-            if field.text == 'None Given':
-                doc.remove(field)
-            if ' ' in field.text:
-                field.text = field.text.replace(' ','/')
-                print(field.text)
-            if re.search(pattern1, field.text):
-                field.text = field.text.replace(' ','/')
+        # for field in doc.findall("field[@name='date_t']"):
+        #
+        #     if field.text == 'None Given':
+        #         doc.remove(field)
+        #     if field.text == 'None/Given':
+        #         doc.remove(field)
+        #
+        #     if ' ' in field.text:
+        #         field.text = field.text.replace(' ','/')
+        #         # print(field.text)
+        #     if re.search(pattern1, field.text):
+        #         field.text = field.text.replace(' ','/')
 
+        for field in doc.findall("field[@name='date_t']"):
+            if re.search('[a-zA-Z]', field.text):
+                doc.remove(field)
+            if '-00-' in field.text:
+                field.text = field.text.replace('-00-','')
+            if '/00-' in field.text:
+                field.text = field.text.replace('/00-','/')
+            if field.text.startswith('00'):
+                print(field.text)
+                # field.text.replace('00','')
+
+        # for field in doc.findall("field[@name='date_t']"):
+        #     if '/' in field.text:
+        #         date= field.text.split('/')
+        #         for x in date:
+        #             if len(x) == 6:
+        #                 # print(x)
+        #                 newx=datetime.datetime.strptime(x, "%m%Y").strftime("%Y-%m")
+        #                 print(newx)
+        # print(field.text)
 
             # if field.text
     # header=root.find('ead:eadheader', ns)
