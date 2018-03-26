@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 import copy
 import datetime
-import dateutil.parser
+import dateutil.parser as parser
 import arrow
 
 
@@ -35,38 +35,46 @@ def updateValues(root):
     #look for ##-##-#### ##-##-####
     pattern2 = '\d{2}-\d{2}-\d{4}\s\d{2}-\d{2}-\d{4}'
     for doc in root:
-        # for field in doc.findall("field[@name='date_t']"):
-        #
-        #     if field.text == 'None Given':
-        #         doc.remove(field)
-        #     if field.text == 'None/Given':
-        #         doc.remove(field)
-        #
-        #     if ' ' in field.text:
-        #         field.text = field.text.replace(' ','/')
-        #         # print(field.text)
-        #     if re.search(pattern1, field.text):
-        #         field.text = field.text.replace(' ','/')
+        for field in doc.findall("field[@name='date_t']"):
+
+            if field.text == 'None Given':
+                doc.remove(field)
+            if field.text == 'None/Given':
+                doc.remove(field)
+
+            if ' ' in field.text:
+                field.text = field.text.replace(' ','/')
+                # print(field.text)
+            if re.search(pattern1, field.text):
+                field.text = field.text.replace(' ','/')
 
         for field in doc.findall("field[@name='date_t']"):
+            # print(field.text)
             if re.search('[a-zA-Z]', field.text):
                 doc.remove(field)
             if '-00-' in field.text:
                 field.text = field.text.replace('-00-','')
             if '/00-' in field.text:
                 field.text = field.text.replace('/00-','/')
+            #remove 00 from beginning of string
             if field.text.startswith('00'):
-                print(field.text)
-                # field.text.replace('00','')
+                field.text = field.text[2:]
+                # print(field.text)
 
-        # for field in doc.findall("field[@name='date_t']"):
-        #     if '/' in field.text:
-        #         date= field.text.split('/')
-        #         for x in date:
-        #             if len(x) == 6:
-        #                 # print(x)
-        #                 newx=datetime.datetime.strptime(x, "%m%Y").strftime("%Y-%m")
-        #                 print(newx)
+        for field in doc.findall("field[@name='date_t']"):
+            if '/' in field.text:
+                date= field.text.split('/')
+                for x in date:
+                    if len(x) == 6:
+                        x = x[2:]+'-'+x[:2]
+                        print(x)
+                        # x = x[2:]+'-'+x[:2]
+                        # print(x)
+                        # date = parser.parse(x)
+                        # print(date.isoformat())
+                        # print(x)
+                        # newx=datetime.datetime.strptime(x, "%m%Y").strftime("%Y-%m")
+                        # print(newx)
         # print(field.text)
 
             # if field.text
