@@ -65,9 +65,10 @@ def updateValues(root):
             if '/' in field.text:
                 date= field.text.split('/')
                 for x in date:
-                    if len(x) == 6:
-                        x = x[2:]+'-'+x[:2]
-                        print(x)
+                    # print(x)
+                    # if len(x) == 6:
+                    #     x = x[2:]+'-'+x[:2]
+                        # print(x)
                         # x = x[2:]+'-'+x[:2]
                         # print(x)
                         # date = parser.parse(x)
@@ -75,121 +76,28 @@ def updateValues(root):
                         # print(x)
                         # newx=datetime.datetime.strptime(x, "%m%Y").strftime("%Y-%m")
                         # print(newx)
-        # print(field.text)
+                    if len(x) == 10:
+                        # x = x[6:]+'-'+x[:2]+'-'+x[3:5]
 
-            # if field.text
-    # header=root.find('ead:eadheader', ns)
-    # # print(header.tag)
-    # header.set('findaidstatus','complete')
-    # # print(header.attrib)
-    #
-    #
-    # revision=SubElement(header, 'revisiondesc')
-    # change=SubElement(revision,'change')
-    # revDate=SubElement(change,'date')
-    # revDate.set('normal', time)
-    # revDate.text = time
-    # item = SubElement(change, 'item')
-    # item.text = 'This finding aid was updated in alignment with LC EAD 2.0 specifications using a python script created by Erik Radio.'
-    #
-    # #fix EADid
-    # EADid = header.find('ead:eadid',ns)
-    # EADid.text=infile_path.strip('.xml')
-    #
-    #
-    #
-    #
-    #
-    # #date
-    #
-    # pubDate = header.find('ead:filedesc/ead:publicationstmt/ead:date',ns)
-    # pubDate.text = pubDate.text.replace(u"© ","")
-    # pubDate.text = pubDate.text.replace("; ","")
-    #
-    # #control access to remove list
-    # conAcc = root.find('ead:archdesc/ead:controlaccess',ns)
-    # # print(conAcc)
-    # subj=[]
-    # for thing in conAcc.findall('ead:list/ead:item/*',ns):
-    #     subj.append(thing)
-    #     # print(subj)
-    #     for head in conAcc.findall('ead:head',ns):
-    #         print(head.tag)
-    #         conAcc.remove(head)
-    #     for y in conAcc.findall('ead:list',ns):
-    #         conAcc.remove(y)
-    #
-    # for x in subj:
-    #
-    #     newsubj = SubElement(conAcc,x.tag)
-    #     newsubj.text=x.text
+                        x = x.replace(x,x[6:]+'-'+x[:2]+'-'+x[3:5])
+                        return x
+                        #year
+                        # print(x[6:])
+                        #day
+                        # print(x[3:5])
+                        #month
+                        # print(x[:2])
+
+
+                        # print(x)
+
+
+
 
     return root
 
 
-# def updateAttributes(root):
-#     ns = {'ead':'urn:isbn:1-931666-22-9'}
-#     header=root.find('ead:eadheader',ns)
-#
-#     repoCode=root.find('ead:archdesc/ead:did/ead:unitid',ns)
-#     repoCode.set('repositorycode','US-azu')
-#     repoCode.set('countrycode','US')
-#     # print(repoCode.attrib)
-#
-#     for repoDate in root.iter('ead:unitdate'):
-#         date=repoDate.attrib
-#         if date == '':
-#             date.attrib.pop('normal', None)
-#         if date == 'NaN':
-#             date.attrib.pop('normal', None)
-#         if date == 'AzU':
-#             date.attrib.pop('normal', None)
-#         # print(date)
-#     # print(repoDate)
-#
-#     archDesc=root.find('ead:archdesc',ns)
-#     # print(archDesc)
-#     archDesc.attrib.pop('relatedencoding', None)
-#     archDesc.set('encodinganalog','351$c')
-#
-#     #langmaterial
-#     langusage = header.find('ead:profiledesc/ead:langusage/ead:language',ns)
-#     langusage.set('langcode','eng')
-#
-#
-#     langusage2 = root.find('ead:archdesc/ead:did/ead:langmaterial/ead:language',ns)
-#     # print(langusage2)
-#     if langusage2 is not None:
-#         langusage2.attrib.pop('scriptcode', None)
-#
-#     #remove all id attrib
-#
-#     for x in root.iter('*'):
-#         name=x.get('id')
-#         if name is not None:
-#             x.attrib.pop('id', None)
-#
-#     for el in root.iter('*'):
-#         fack=el.attrib
-#         for x in fack:
-#             attrText = fack[x]
-#             if attrText == '5441':
-#                 fack[x] = attrText.replace('5441','544')
-#             if attrText == '544$1':
-#                 fack[x] = attrText.replace('544$1','544')
-#
-#     #add random ids to containers
-#     alldid = root.findall('.//ead:did',ns)
-#     for did in alldid:
-#         for elem in did.findall('./ead:container[1]',ns):
-#             randomID = uuid.uuid4()
-#             elem.set('id',str(randomID))
-#             newID=elem.get('id')
-#             for thing in did.findall('./ead:container',ns):
-#                 if thing.get('id') == None:
-#                     thing.set('parent',newID)
-#
-#     return root
+
 
 
 
