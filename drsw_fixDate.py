@@ -37,6 +37,7 @@ def updateValues(root):
     for doc in root:
         for field in doc.findall("field[@name='date_t']"):
 
+
             if field.text == 'None Given':
                 doc.remove(field)
             if field.text == 'None/Given':
@@ -47,45 +48,60 @@ def updateValues(root):
                 # print(field.text)
             if re.search(pattern1, field.text):
                 field.text = field.text.replace(' ','/')
+        #
+        # for field in doc.findall("field[@name='date_t']"):
+        #     # print(field.text)
+        #     if re.search('[a-zA-Z]', field.text):
+        #         doc.remove(field)
+        #     if '-00-' in field.text:
+        #         field.text = field.text.replace('-00-','')
+        #     if '/00-' in field.text:
+        #         field.text = field.text.replace('/00-','/')
+        #     #remove 00 from beginning of string
+        #     if field.text.startswith('00'):
+        #         field.text = field.text[2:]
+        #         # print(field.text)
 
         for field in doc.findall("field[@name='date_t']"):
             # print(field.text)
-            if re.search('[a-zA-Z]', field.text):
-                doc.remove(field)
-            if '-00-' in field.text:
-                field.text = field.text.replace('-00-','')
-            if '/00-' in field.text:
-                field.text = field.text.replace('/00-','/')
-            #remove 00 from beginning of string
-            if field.text.startswith('00'):
-                field.text = field.text[2:]
-                # print(field.text)
-
-        for field in doc.findall("field[@name='date_t']"):
             if '/' in field.text:
                 date= field.text.split('/')
+                # print(date)
                 for x in date:
-                    # print(x)
-                    # if len(x) == 6:
-                    #     x = x[2:]+'-'+x[:2]
-                        # print(x)
-                        # x = x[2:]+'-'+x[:2]
-                        # print(x)
-                        # date = parser.parse(x)
-                        # print(date.isoformat())
-                        # print(x)
-                        # newx=datetime.datetime.strptime(x, "%m%Y").strftime("%Y-%m")
-                        # print(newx)
-                    if len(x) == 10:
-                        # x = x[6:]+'-'+x[:2]+'-'+x[3:5]
 
-                        x = x.replace(x,x[6:]+'-'+x[:2]+'-'+x[3:5])
-                        return x
-                        #year
+                    if len(x) == 7:
+                    #
+                        field.text = x[2:]+'-'+x[:2]
+                    #     print(newx)
+
+                    if len(x) == 10:
+
+                        newx = x[6:]+'-'+x[:2]+'-'+x[3:5]
+                        # print(newx)
+                        field.text=newx
+            else:
+                date = field.text
+                # print(date)
+                if len(date) == 7:
+                    field.text = date[2:]+'-'+date[:2]
+
+                if len(date) == 10:
+                    print(date)
+                #
+                #         newx = x[6:]+'-'+x[:2]+'-'+x[3:5]
+                #         # print(newx)
+                #         field.text=newx
+
+                    #     # x = x.replace(x,x[6:]+'-'+x[:2]+'-'+x[3:5])
+                    #     field.text=newx
+                        # print(field.text)
+
+                        # return x
+                        # year
                         # print(x[6:])
-                        #day
+                        # day
                         # print(x[3:5])
-                        #month
+                        # month
                         # print(x[:2])
 
 
