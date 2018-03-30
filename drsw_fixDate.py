@@ -40,14 +40,49 @@ def updateValues(root):
 
             if field.text == 'None Given':
                 doc.remove(field)
-            if field.text == 'None/Given':
-                doc.remove(field)
-
             if ' ' in field.text:
                 field.text = field.text.replace(' ','/')
+            if '/' in field.text:
+                date = field.text.split('/')
+                # print(date)
+                for x in date:
+                    if len(x) == 7:
+                        #fix, only does second date
+                        # field.text = x[2:]+'-'+x[:2]
+
+
+
+                    if len(x) == 10:
+                        # print(x[0])
+                        field.text = x[6:]+'-'+x[:2]+'-'+x[3:5]
+                        # print(field.text)
+
+            else:
+                date = field.text
+                    # print(date)
+                if len(date) == 7:
+                    field.text = date[2:]+'-'+date[:2]
+                if len(date) == 10:
+                        # print(date)
+                    #
+                    field.text = date[6:]+'-'+date[:2]+'-'+date[3:5]
+                        #     print(newx)
+
+
+
+
+
+            # if '-00-' in field.text:
+            #     field.text = field.text.replace('-00-','')
+            # if field.text.startswith('00'):
+            #     field.text = field.text[2:]
+
                 # print(field.text)
-            if re.search(pattern1, field.text):
-                field.text = field.text.replace(' ','/')
+            # if re.search('[a-zA-Z]', field.text):
+            #     doc.remove(field)
+
+
+
         #
         # for field in doc.findall("field[@name='date_t']"):
         #     # print(field.text)
@@ -62,39 +97,14 @@ def updateValues(root):
         #         field.text = field.text[2:]
         #         # print(field.text)
 
-        for field in doc.findall("field[@name='date_t']"):
-            # print(field.text)
-            if '/' in field.text:
-                date= field.text.split('/')
-                # print(date)
-                for x in date:
+        # for field in doc.findall("field[@name='date_t']"):
+        #     # print(field.text)
 
-                    if len(x) == 7:
-                    #
-                        field.text = x[2:]+'-'+x[:2]
-                    #     print(newx)
 
-                    if len(x) == 10:
-
-                        newx = x[6:]+'-'+x[:2]+'-'+x[3:5]
-                        # print(newx)
-                        field.text=newx
-            else:
-                date = field.text
-                # print(date)
-                if len(date) == 7:
-                    field.text = date[2:]+'-'+date[:2]
-
-                if len(date) == 10:
-                    print(date)
-                #
-                #         newx = x[6:]+'-'+x[:2]+'-'+x[3:5]
                 #         # print(newx)
                 #         field.text=newx
 
-                    #     # x = x.replace(x,x[6:]+'-'+x[:2]+'-'+x[3:5])
-                    #     field.text=newx
-                        # print(field.text)
+
 
                         # return x
                         # year
@@ -106,9 +116,6 @@ def updateValues(root):
 
 
                         # print(x)
-
-
-
 
     return root
 
