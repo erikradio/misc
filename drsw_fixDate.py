@@ -49,16 +49,25 @@ def updateValues(root):
 
                 if len(date1) == 7 and len(date2) == 7:
                     newdate1 = date1[3:]+'-'+date1[:2]
-
                     newdate2 = date2[3:]+'-'+date2[:2]
                     field.text=newdate1+'/'+newdate2
 
-            #
-            #
-            #
-            #         if len(x) == 10:
-            #             # print(x[0])
-            #             field.text = x[6:]+'-'+x[:2]+'-'+x[3:5]
+
+                if len(date1) == 10 and len(date2) == 7:
+
+                        newdate1 = date1[6:]+'-'+date1[:2]+'-'+date1[3:5]
+                        newdate2 = date2[3:]+'-'+date2[:2]
+                        field.text=newdate1+'/'+newdate2
+
+                if len(date1) == 7 and len(date2) == 10:
+                        newdate1 = date1[3:]+'-'+date1[:2]
+                        newdate2 = date2[6:]+'-'+date2[:2]+'-'+date2[3:5]
+                        field.text=newdate1+'/'+newdate2
+
+                if len(date1) == 10 and len(date2) == 10:
+                        newdate1 = date1[6:]+'-'+date1[:2]+'-'+date1[3:5]
+                        newdate2 = date2[6:]+'-'+date2[:2]+'-'+date2[3:5]
+                        field.text=newdate1+'/'+newdate2
             #             # print(field.text)
             #
             # else:
