@@ -37,36 +37,69 @@ def updateValues(root):
     for doc in root:
         for field in doc.findall("field[@name='date_t']"):
 
-
             if field.text == 'None Given':
                 doc.remove(field)
             if ' ' in field.text:
                 field.text = field.text.replace(' ','/')
             if '/' in field.text:
                 date = field.text.split('/')
-                # print(date)
-                for x in date:
-                    if len(x) == 7:
-                        #fix, only does second date
-                        # field.text = x[2:]+'-'+x[:2]
+                date1=date[0]
+                date2=date[1]
 
 
+                if len(date1) == 7 and len(date2) == 7:
+                    newdate1 = date1[3:]+'-'+date1[:2]
 
-                    if len(x) == 10:
-                        # print(x[0])
-                        field.text = x[6:]+'-'+x[:2]+'-'+x[3:5]
-                        # print(field.text)
+                    newdate2 = date2[3:]+'-'+date2[:2]
+                    field.text=newdate1+'/'+newdate2
 
-            else:
-                date = field.text
-                    # print(date)
-                if len(date) == 7:
-                    field.text = date[2:]+'-'+date[:2]
-                if len(date) == 10:
-                        # print(date)
-                    #
-                    field.text = date[6:]+'-'+date[:2]+'-'+date[3:5]
+            #
+            #
+            #
+            #         if len(x) == 10:
+            #             # print(x[0])
+            #             field.text = x[6:]+'-'+x[:2]+'-'+x[3:5]
+            #             # print(field.text)
+            #
+            # else:
+            #     date = field.text
+            #         # print(date)
+            #     if len(date) == 7:
+            #         field.text = date[2:]+'-'+date[:2]
+            #     if len(date) == 10:
+            #             # print(date)
+            #         #
+            #         field.text = date[6:]+'-'+date[:2]+'-'+date[3:5]
                         #     print(newx)
+
+            # version without the split
+
+
+
+            # if len(field.text) == 7:
+            #     x = field.text
+            #     # print(x[3:7])
+            #     # print(x[0:3])
+            #     field.text=x[3:7]+'-'+x[0:2]
+            #     print(field.text)
+            #     #fix, only does second date
+            #     # field.text = x[2:]+'-'+x[:2]
+
+
+
+            # if len(field.text) == 10:
+            #     # print(x[0])
+            #     field.text = x[6:]+'-'+x[:2]+'-'+x[3:5]
+            #     # print(field.text)
+            #
+            #
+            #
+            # if len(date) == 7:
+            #     field.text = date[2:]+'-'+date[:2]
+            # if len(date) == 10:
+            #         # print(date)
+            #     #
+            #     field.text = date[6:]+'-'+date[:2]+'-'+date[3:5]
 
 
 
