@@ -14,7 +14,7 @@ all_the_data = []
 # get all resource ids
 total = None
 while True:
-   
+    # headers = {'apikey':'l7xx70b8ebb20fe94d4aa6fe7e5d540733d1'}
     gruyters_link = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections/61172567390003843/e-services/62172567380003843/portfolios?limit=100&offset='+str(offset)+'&apikey=xxx&format=json'
 
     # print("GET {}".format(gruyters_link))
@@ -46,8 +46,8 @@ while True:
 #
         if record['availability']['value'] == '10':
             portID = record['id']
-            update_gruyter = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections/61172567390003843/e-services/62172567380003843/portfolios/'+portID+'&apikey=xxx&format=json'
-
+            update_gruyter = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections/61172567390003843/e-services/62172567380003843/portfolios/'+portID+'?&apikey=xxx&format=json'
+            #METHOD1
             # changeAvail=JsonPatch([{"op": "replace", "path":"/availability/value", "value":"11"}])
             # applyPatch=changeAvail.apply(record,in_place=True)
             # print(applyPatch)
@@ -58,9 +58,10 @@ while True:
             # updated_level=requests.put(update_gruyter, data=patchString)
             # print(updated_level.raise_for_status)
             #
+            #METHOD2
             # print("Now we're interacting with the API, if this is the last thing printed then there is some connection problem")
             payload={'availability':{'value':'11','desc':'Available'}}
-            updated_level=requests.put(update_gruyter, data=json.dumps(payload))
+            updated_level=requests.put(update_gruyter, data=payload)
 #
             print(updated_level.raise_for_status)
 #             # print(updated_level.url)
