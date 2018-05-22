@@ -21,10 +21,10 @@ while True:
     this_chunk = requests.get(gruyters_link)
     # print(this_chunk.url)
     # this_chunk.raise_for_status()
-    print("GET complete")
-    print("Parsing as JSON")
+    # print("GET complete")
+    # print("Parsing as JSON")
     this_chunk_json = this_chunk.json()
-    print("Parsed as JSON")
+    # print("Parsed as JSON")
     # print(this_chunk_json)
 #
     if this_chunk_json.get('portfolio') is None:
@@ -36,7 +36,7 @@ while True:
 # #
 #     # Count how many responses we got
     how_many_in_the_chunk = len(this_chunk_json['portfolio'])
-    print(how_many_in_the_chunk)
+    # print(how_many_in_the_chunk)
 #
 
 #
@@ -45,8 +45,10 @@ while True:
 #
 #
         if record['availability']['value'] == '10':
+
             portID = record['id']
-            update_gruyter = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections/61172567390003843/e-services/62172567380003843/portfolios/'+portID+'?&apikey=xxx&format=json'
+            print(portID)
+            update_gruyter = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections/61172567390003843/e-services/62172567380003843/portfolios/'+portID+'?&apikey=xxx'
             #METHOD1
             # changeAvail=JsonPatch([{"op": "replace", "path":"/availability/value", "value":"11"}])
             # applyPatch=changeAvail.apply(record,in_place=True)
@@ -60,10 +62,16 @@ while True:
             #
             #METHOD2
             # print("Now we're interacting with the API, if this is the last thing printed then there is some connection problem")
+            headers = {"content-type": "application/json"}
             payload={'availability':{'value':'11','desc':'Available'}}
-            updated_level=requests.put(update_gruyter, data=payload)
+            updated_level=requests.put(update_gruyter, json=payload, headers=headers)
+            print(updated_level.url)
+            print(updated_level.status_code)
+            print(updated_level.reason)
+            print(updated_level.text)
+
 #
-            print(updated_level.raise_for_status)
+            # print(updated_level.raise_for_status)
 #             # print(updated_level.url)
 #             # print("If this is the last thing printed then the API returned a bad response code")
 #             # print(updated_level.text)
@@ -71,7 +79,7 @@ while True:
 #
 #
 #
-#         all_the_data.append(record)
+        all_the_data.append(record)
 # #
 #     # Increment our offset
     offset = offset + how_many_in_the_chunk
@@ -79,9 +87,9 @@ while True:
 #     # End cases
     if how_many_in_the_chunk == 0 or len(all_the_data) == total:
         break
-# dump_file = "test.json"
-# with open(dump_file, 'w') as f:
-#     json.dump(all_the_data, f)
+dump_file = "test.json"
+with open(dump_file, 'w') as f:
+    json.dump(all_the_data, f)
 # #
 # #
 
