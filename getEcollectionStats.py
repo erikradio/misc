@@ -15,7 +15,7 @@ all_the_data = []
 total = None
 # while True:
 #     # headers = {'apikey':'l7xx70b8ebb20fe94d4aa6fe7e5d540733d1'}
-#     ecollections='https://api-na.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections?view=full&expand=None&is_local=True&limit=100&offset='+str(offset)+'&apikey=l7xx70b8ebb20fe94d4aa6fe7e5d540733d1&format=json'
+#     ecollections='https://api-na.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections?view=full&expand=None&is_local=True&limit=100&offset='+str(offset)+'&apikey=xxx&format=json'
 #
 #     # print("GET {}".format(gruyters_link))
 #     this_chunk = requests.get(ecollections)
@@ -45,14 +45,14 @@ with open('almaCollections.json','r') as jsonfile:
         id = record['id']
         publicName = record['public_name']
         portfolioCount = record['portfolios']['value']
-        services = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections/'+id+'/e-services?apikey=l7xx70b8ebb20fe94d4aa6fe7e5d540733d1&format=json'
+        services = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections/'+id+'/e-services?apikey=xxx&format=json'
         getService = requests.get(services)
         service_json=getService.json()
         for x in service_json['electronic_service']:
             if x['type']['value'] == 'getFullTxt':
                 eserviceID=x['id']
 
-            portURL = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections/'+id+'/e-services/'+eserviceID+'/portfolios?limit=100&offset='+str(offset)+'&apikey=l7xx70b8ebb20fe94d4aa6fe7e5d540733d1&format=json'
+            portURL = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections/'+id+'/e-services/'+eserviceID+'/portfolios?limit=100&offset='+str(offset)+'&apikey=xxx&format=json'
             getPort = requests.get(portURL)
             portList = getPort.json()
             activeCount = []
@@ -72,7 +72,7 @@ with open('almaCollections.json','r') as jsonfile:
 #
 #             portID = record['id']
 #             print(portID)
-#             update_gruyter = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections/61172567390003843/e-services/62172567380003843/portfolios/'+portID+'?&apikey=l7xx70b8ebb20fe94d4aa6fe7e5d540733d1'
+#             update_gruyter = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections/61172567390003843/e-services/62172567380003843/portfolios/'+portID+'?&apikey=xxx'
 #             #METHOD1
 #             # changeAvail=JsonPatch([{"op": "replace", "path":"/availability/value", "value":"11"}])
 #             # applyPatch=changeAvail.apply(record,in_place=True)
