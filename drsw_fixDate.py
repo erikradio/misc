@@ -35,10 +35,24 @@ def updateValues(root):
     #look for ##-##-#### ##-##-####
     pattern2 = '\d{2}-\d{2}-\d{4}\s\d{2}-\d{2}-\d{4}'
     for doc in root:
-        for field in doc.findall("field[@name='date_t']"):
+
+        for field in doc.findall("date"):
+
+            if '-00-' in field.text:
+                field.text = field.text.replace('-00-','')
+            if '/00-' in field.text:
+                field.text = field.text.replace('/00-','/')
+            if '-00-00' in field.text:
+                field.text = field.text.replace('-00-00','')
+            #remove 00 from beginning of string
+            if field.text.startswith('00'):
+                field.text = field.text[2:]
 
             if field.text == 'None Given':
                 doc.remove(field)
+            # if '-00-00' in field.text:
+            #
+            #     field.text = field.text.replace('-00-00','')
             if ' ' in field.text:
                 field.text = field.text.replace(' ','/')
             if '/' in field.text:
@@ -68,96 +82,52 @@ def updateValues(root):
                         newdate1 = date1[6:]+'-'+date1[:2]+'-'+date1[3:5]
                         newdate2 = date2[6:]+'-'+date2[:2]+'-'+date2[3:5]
                         field.text=newdate1+'/'+newdate2
-            #             # print(field.text)
-            #
-            # else:
-            #     date = field.text
-            #         # print(date)
-            #     if len(date) == 7:
-            #         field.text = date[2:]+'-'+date[:2]
-            #     if len(date) == 10:
-            #             # print(date)
-            #         #
-            #         field.text = date[6:]+'-'+date[:2]+'-'+date[3:5]
-                        #     print(newx)
 
-            # version without the split
+            else:
+                #030-00117
+                date = field.text
+                if '-00-' in field.text:
+                    field.text = field.text.replace('-00-','')
+                    field.text = date[2:]+'-'+date[:2]
+                if '/00-' in field.text:
+                    field.text = field.text.replace('/00-','/')
+                if '-00-00' in field.text:
+                    field.text = field.text.replace('-00-00','')
 
+                if field.text.startswith('00'):
+                    field.text = field.text[2:]
 
+                if re.search('[a-zA-Z]', field.text):
+                    doc.remove(field)
 
-            # if len(field.text) == 7:
-            #     x = field.text
-            #     # print(x[3:7])
-            #     # print(x[0:3])
-            #     field.text=x[3:7]+'-'+x[0:2]
-            #     print(field.text)
-            #     #fix, only does second date
-            #     # field.text = x[2:]+'-'+x[:2]
-
+                if len(date) == 7:
+                    field.text = date[2:]+'-'+date[:2]
+                if len(date) == 10:
+                    field.text = date[6:]+'-'+date[:2]+'-'+date[3:5]
+                if len(date) == 6:
+                    field.text = date[2:]+'-'+date[:2]
 
 
-            # if len(field.text) == 10:
-            #     # print(x[0])
-            #     field.text = x[6:]+'-'+x[:2]+'-'+x[3:5]
-            #     # print(field.text)
-            #
-            #
-            #
-            # if len(date) == 7:
-            #     field.text = date[2:]+'-'+date[:2]
-            # if len(date) == 10:
-            #         # print(date)
-            #     #
-            #     field.text = date[6:]+'-'+date[:2]+'-'+date[3:5]
-
-
-
-
-
-            # if '-00-' in field.text:
-            #     field.text = field.text.replace('-00-','')
-            # if field.text.startswith('00'):
-            #     field.text = field.text[2:]
-
-                # print(field.text)
-            # if re.search('[a-zA-Z]', field.text):
-            #     doc.remove(field)
 
 
 
         #
-        # for field in doc.findall("field[@name='date_t']"):
-        #     # print(field.text)
-        #     if re.search('[a-zA-Z]', field.text):
-        #         doc.remove(field)
-        #     if '-00-' in field.text:
-        #         field.text = field.text.replace('-00-','')
-        #     if '/00-' in field.text:
-        #         field.text = field.text.replace('/00-','/')
-        #     #remove 00 from beginning of string
-        #     if field.text.startswith('00'):
-        #         field.text = field.text[2:]
-        #         # print(field.text)
-
-        # for field in doc.findall("field[@name='date_t']"):
-        #     # print(field.text)
-
-
-                #         # print(newx)
-                #         field.text=newx
+        # for field in doc.findall("date"):
+            # print(field.text)
+            # if re.search('[a-zA-Z]', field.text):
+            #     doc.remove(field)
+            # if '-00-' in field.text:
+            #     field.text = field.text.replace('-00-','')
+            # if '/00-' in field.text:
+            #     field.text = field.text.replace('/00-','/')
+            # if '-00-00' in field.text:
+            #     field.text = field.text.replace('-00-00','')
+            # #remove 00 from beginning of string
+            # if field.text.startswith('00'):
+            #     field.text = field.text[2:]
+                # print(field.text)
 
 
-
-                        # return x
-                        # year
-                        # print(x[6:])
-                        # day
-                        # print(x[3:5])
-                        # month
-                        # print(x[:2])
-
-
-                        # print(x)
 
     return root
 
