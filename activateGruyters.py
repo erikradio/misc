@@ -14,7 +14,7 @@ all_the_data = []
 # get all resource ids
 total = None
 while True:
-    # headers = {'apikey':'l7xx70b8ebb20fe94d4aa6fe7e5d540733d1'}
+    # headers = {'apikey':'xxx'}
     gruyters_link = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/electronic/e-collections/61172567390003843/e-services/62172567380003843/portfolios?limit=100&offset='+str(offset)+'&apikey=xxx&format=json'
 
     # print("GET {}".format(gruyters_link))
