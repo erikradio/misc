@@ -11,6 +11,7 @@ def getGeoMetadata(infile_path):
     # print(title)
     title = root.find('idinfo/citation/citeinfo/title').text
     # print(title)
+    doc['filename'] = infile_path
     doc['title'] = title
 
     issueDate = root.find('idinfo/citation/citeinfo/pubdate').text
@@ -43,6 +44,15 @@ def getGeoMetadata(infile_path):
         key = x.text
         doc['places'].append(key)
 
+    cityCreated = root.find('distinfo/distrib/cntinfo/cntaddr/city').text
+    stateCreated = root.find('metainfo/metc/cntinfo/cntaddr/state').text
+    if len(cityCreated) > 0:
+        placeCreated = stateCreated+'--'+cityCreated
+        doc['placeCreated'] = placeCreated
+    else:
+        doc['placeCreated'] = stateCreated
+
+
     searchkeys = root.findall('dataIdInfo/searchKeys/keyword')
     for x in searchkeys:
         key = x.text
@@ -54,142 +64,112 @@ def getGeoMetadata(infile_path):
 
 def makeMods(doc):
 
-    for x in doc:
-        print(x)
-# newnewroot = Element('mods:mods')
-#
-# newnewroot.set('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
-# newnewroot.set('xmlns:mods', 'http://www.loc.gov/mods/v3')
-# newnewroot.set('xmlns:xlink','http://www.w3.org/1999/xlink')
-# newnewroot.set('xsi:schemaLocation',
-#          'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd')
-# newtree = ET.ElementTree(newroot)
-# # record = SubElement(newroot, 'mods:mods')
-# # record.set('xsi:schemaLocation',
-# #            'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd')
-# # inserts filename as local identifier
-# identifier = SubElement(newroot, 'mods:identifier')
-# identifier.set('type', 'local')
-# id = row['identifier']
-# identifier.text = row['identifier']
-#
-# titleInfo = SubElement(newroot, 'mods:titleInfo')
-# title = SubElement(titleInfo, 'mods:title')
-# title.text = row['title']
-#
-# partNo = SubElement(titleInfo, 'mods:partNumber')
-# partNo.text = row['part']
-# typeImage = SubElement(newroot, 'mods:typeOfResource')
-# typeImage.text = row['typeOfResource']
-#
-# originInfo = SubElement(newroot, 'mods:originInfo')
-#         if len(row['dateCreated']) > 0:
-#             dateCreated = SubElement(originInfo, 'mods:dateCreated')
-#             dateCreated.set('encoding', 'w3cdtf')
-#             dateCreated.text = row['dateCreated']
-#
-#         placeCreated = SubElement(originInfo, 'mods:place')
-#         placeCreated.set('supplied', 'yes')
-#         placeTerm = SubElement(placeCreated, 'mods:placeTerm')
-#         placeTerm.set('authorityURI', 'http://id.worldcat.org/fast')
-#         placeTerm.set('valueURI', 'http://id.worldcat.org/fast/1205454')
-#         placeTerm.text = row['placeCreated']
-#
-#         pub = SubElement(originInfo, 'mods:publisher')
-#         pub.text = row['publisher']
-#
-#
-#         langrow=row['language'].split('|')
-#         for x in langrow:
-#             language = SubElement(newroot, 'mods:language')
-#             languageTerm = SubElement(language,'mods:languageTerm')
-#             languageTerm.set('type','text')
-#             languageTerm.text=x
-#         # if '|' in row['Language']:
-#         #     posh = row['Language'].split('|')
-#         #
-#         #     for x in posh:
-#         #         language.text=str(x)
-#         #     # print(language)
-#         #     # language.text = language
-#         # else:
-#         #     language.text = row['Language']
-#
-#         namerow = row['creatorName'].split('|')
-#
-#
-#
-#         for x in namerow:
-#
-#             name = SubElement(newroot, 'mods:name')
-#             name.set('type', 'personal')
-#             namePart = SubElement(name, 'mods:namePart')
-#             if ';' in x:
-#                 role = SubElement(name, 'mods:role')
-#                 # roleTermcode = SubElement(role, 'mods:roleTerm')
-#                 # roleTermcode.set('type', 'code')
-#
-#                 roleTermtext = SubElement(role, 'mods:roleTerm')
-#                 roleTermtext.set('type', 'text')
-#                 y = x.split(';')
-#                 namePart.text = y[0]
-#                 roleTermtext.text = y[1]
-#
-#             else:
-#                 namePart.text = x
-#
-#
-#         # info about the nature of the resource. not from the spreadsheet
-#         physDesc = SubElement(newroot, 'mods:physicalDescription')
-#         if len(row['digitalOrigin']) > 0:
-#             digOr = SubElement(physDesc, 'mods:digitalOrigin')
-#             digOr.text = row['digitalOrigin']
-#         form = SubElement(physDesc, 'mods:form')
-#         form.set('type', 'material')
-#         form.text = row['form']
-#
-#         identifier = SubElement(newroot,'mods:identifier')
-#         identifier.set('type','local')
-#         identifier.text = row['identifier']
-#
-#         interMed = SubElement(physDesc, 'mods:internetMediaType')
-#         interMed.text = 'audio/wav'
-#         #
-#         abstract = SubElement(newroot, 'mods:abstract')
-#         abstract.text = row['abstract']
-#
-#         genre = SubElement(newroot, 'mods:genre')
-#         genre.set('authorityURI', 'http://id.loc.gov')
-#         genre.set(
-#             'valueURI', 'http://id.loc.gov/authorities/genreForms/gf2011026431.html')
-#         genre.text = row['genre']
-#         accessCond = SubElement(newroot, 'mods:accessCondition')
-#         accessCond.set('type', 'use and reproduction')
-#         # accessCond.set('xlink:href','http://rightsstatements.org/page/UND/1.0/?language=en')
-#         accessCond.text = 'The copyright and related rights status of this Item has been reviewed by the organization that has made the Item available, but the organization was unable to make a conclusive determination as to the copyright status of the Item. Please refer to the organization that has made the Item available for more information. You are free to use this Item in any way that is permitted by the copyright and related rights legislation that applies to your use.'
-#         #
-#
-#         location = SubElement(newroot, 'mods:location')
-#         physLoc = SubElement(location, 'mods:physicalLocation')
-#         physLoc.set('authorityURI', 'http://id.worldcat.org/fast')
-#         physLoc.set('valueURI', 'http://id.worldcat.org/fast/1567592')
-#         shelfLocator = SubElement(location, 'mods:shelfLocator')
-#         shelfLocator.text = row['callNumber'] + ', ' + row['shelfLocator']
-#         shelfLocator = SubElement(location, 'mods:shelfLocator')
-#         shelfLocator.text = row['callNumberID']
-#         physLoc.text = 'University of Arizona. Library. Special Collections.'
-#         # typeOfResource = SubElement(newroot, 'mods:typeOfResource')
-#         # typeOfResource.text = row['TypeOfResource']
-#         # related item was used for the host parent of the plate, e.g. the
-#         # monographic volume
-#         relatedItem = SubElement(newroot, 'mods:relatedItem')
-#         relatedItem.set('type', 'host')
-#         relatedTitleInfo = SubElement(relatedItem,'mods:titleInfo')
-#         relatedTitle = SubElement(relatedTitleInfo,'mods:title')
+    root = Element('mods:mods')
+
+    root.set('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
+    root.set('xmlns:mods', 'http://www.loc.gov/mods/v3')
+    root.set('xmlns:xlink','http://www.w3.org/1999/xlink')
+    root.set('xsi:schemaLocation',
+             'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/mods-3-7.xsd')
+
+    record = SubElement(root, 'mods:mods')
+    record.set('xsi:schemaLocation',
+               'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-7.xsd')
+    # inserts filename as local identifier
+    identifier = SubElement(root, 'mods:identifier')
+    identifier.set('type', 'local')
+
+    identifier.text = doc['filename']
+
+    titleInfo = SubElement(root, 'mods:titleInfo')
+    title = SubElement(titleInfo, 'mods:title')
+    title.text = doc['title']
+
+
+    type1 = SubElement(root, 'mods:typeOfResource')
+    type1.text = 'cartographic'
+    type2 = SubElement(root, 'mods:typeOfResource')
+    type2.text = 'software, multimedia'
+
+    originInfo = SubElement(root, 'mods:originInfo')
+
+    dateCreated = SubElement(originInfo, 'mods:dateCreated')
+    dateCreated.set('encoding', 'w3cdtf')
+    dateIssued = SubElement(originInfo,'mods:dateIssued')
+    dateIssued.set('encoding', 'w3cdtf')
+    dateIssued.text = doc['issueDate']
+
+
+    placeCreated = SubElement(originInfo, 'mods:place')
+
+    placeTerm = SubElement(placeCreated, 'mods:placeTerm')
+    placeTerm.text = doc['placeCreated']
+
+
+    pub = SubElement(originInfo, 'mods:publisher')
+    pub.text = doc['publisher']
+    language = SubElement(root, 'mods:language')
+    languageTerm = SubElement(language,'mods:languageTerm')
+    languageTerm.set('type','code')
+    languageTerm.set('authority', 'iso639-2b')
+    languageTerm.text= 'eng'
+
+    for subject in doc['topics']:
+        subject = SubElement(root,'mods:subject')
+        topic = SubElement(subject, 'mods:topic')
+        topic.text = subject
+
+    for place in doc['places']:
+        subject = SubElement(root,'mods:subject')
+        placeTerm = SubElement(subject, 'mods:geographic')
+        placeTerm.text = place
+
+    latlong = SubElement(root, 'mods:subject')
+    carto = SubElement(latlong,'mods:cartographic')
+    cartoCoord = SubElement(carto, 'mods:coordinates')
+    cartoCoord.text = doc['coordinates']
+
+
+
+    # info about the nature of the resource
+    physDesc = SubElement(root, 'mods:physicalDescription')
+
+    digOr = SubElement(physDesc, 'mods:digitalOrigin')
+    digOr.text = 'born digital'
+    form = SubElement(physDesc, 'mods:form')
+    form.set('authority', 'LCGFT')
+    form.set('authorityURI','http://id.loc.gov/authorities/genreForms/gf2011026721')
+    form.text = 'Vector data'
+
+    identifier = SubElement(root,'mods:identifier')
+    identifier.set('type','local')
+    identifier.text = doc['filename']
+
+    interMed = SubElement(physDesc, 'mods:internetMediaType')
+    interMed.text = 'application/octet-stream'
+
+    abstract = SubElement(root, 'mods:abstract')
+    abstract.text = doc['abstract']
+
+    accessCond = SubElement(root, 'mods:accessCondition')
+
+    location = SubElement(root, 'mods:location')
+    url = SubElement(location, 'mods:url')
+    url.set('access', 'object in context')
+
+
+    relatedItem = SubElement(root, 'mods:relatedItem')
+    relatedItem.set('type', 'otherVersion')
+    relatedItem.set('xlink:href', doc['source'])
+    relatedTitleInfo = SubElement(relatedItem,'mods:titleInfo')
+    relatedTitle = SubElement(relatedTitleInfo,'mods:title')
+    relatedTitle.text = doc['title']
+    tree = ET.ElementTree(root)
+    return tree
 #
 #         relatedTitle.text = row['relatedItem']
 #
-#         recordInfo = SubElement(newroot,'mods:recordInfo')
+#         recordInfo = SubElement(root,'mods:recordInfo')
 #         recordCreationDate = SubElement(recordInfo,'mods:recordCreationDate')
 #         recordCreationDate.set('encoding','w3cdtf')
 #         recordCreationDate.text = st
@@ -204,6 +184,9 @@ def main():
     outfile_path = 'mods_'+sys.argv[1]
 
     doc=getGeoMetadata(infile_path)
-    makeMods(doc)
+    tree=makeMods(doc)
+    
+    newtree.write(outfile_path + '.xml', xml_declaration=True, encoding="UTF-8")
+
 if __name__ == '__main__':
     main()
