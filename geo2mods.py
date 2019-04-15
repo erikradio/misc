@@ -72,14 +72,7 @@ def makeMods(doc):
     root.set('xsi:schemaLocation',
              'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/mods-3-7.xsd')
 
-    record = SubElement(root, 'mods:mods')
-    record.set('xsi:schemaLocation',
-               'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-7.xsd')
-    # inserts filename as local identifier
-    identifier = SubElement(root, 'mods:identifier')
-    identifier.set('type', 'local')
 
-    identifier.text = doc['filename']
 
     titleInfo = SubElement(root, 'mods:titleInfo')
     title = SubElement(titleInfo, 'mods:title')
@@ -98,14 +91,14 @@ def makeMods(doc):
     dateIssued = SubElement(originInfo,'mods:dateIssued')
     dateIssued.set('encoding', 'w3cdtf')
     dateIssued.text = doc['issueDate']
-
-
+    #
+    #
     placeCreated = SubElement(originInfo, 'mods:place')
 
     placeTerm = SubElement(placeCreated, 'mods:placeTerm')
     placeTerm.text = doc['placeCreated']
 
-
+    #
     pub = SubElement(originInfo, 'mods:publisher')
     pub.text = doc['publisher']
     language = SubElement(root, 'mods:language')
@@ -113,11 +106,12 @@ def makeMods(doc):
     languageTerm.set('type','code')
     languageTerm.set('authority', 'iso639-2b')
     languageTerm.text= 'eng'
-
-    for subject in doc['topics']:
+    #
+    for term in doc['topics']:
+        # print(subject)
         subject = SubElement(root,'mods:subject')
         topic = SubElement(subject, 'mods:topic')
-        topic.text = subject
+        topic.text = term
 
     for place in doc['places']:
         subject = SubElement(root,'mods:subject')
@@ -144,13 +138,15 @@ def makeMods(doc):
     identifier = SubElement(root,'mods:identifier')
     identifier.set('type','local')
     identifier.text = doc['filename']
-
+    #
     interMed = SubElement(physDesc, 'mods:internetMediaType')
     interMed.text = 'application/octet-stream'
 
     abstract = SubElement(root, 'mods:abstract')
     abstract.text = doc['abstract']
 
+    note = SubElement(root, 'mods:note')
+    note.text = doc['note']
     accessCond = SubElement(root, 'mods:accessCondition')
 
     location = SubElement(root, 'mods:location')
@@ -160,11 +156,14 @@ def makeMods(doc):
 
     relatedItem = SubElement(root, 'mods:relatedItem')
     relatedItem.set('type', 'otherVersion')
-    relatedItem.set('xlink:href', doc['source'])
+    source = doc['source']
+    relatedItem.set('xlink:href', source)
     relatedTitleInfo = SubElement(relatedItem,'mods:titleInfo')
     relatedTitle = SubElement(relatedTitleInfo,'mods:title')
     relatedTitle.text = doc['title']
     tree = ET.ElementTree(root)
+    
+
     return tree
 #
 #         relatedTitle.text = row['relatedItem']
@@ -184,9 +183,8 @@ def main():
     outfile_path = 'mods_'+sys.argv[1]
 
     doc=getGeoMetadata(infile_path)
-    tree=makeMods(doc)
-    
-    newtree.write(outfile_path + '.xml', xml_declaration=True, encoding="UTF-8")
+    newtree=makeMods(doc)
+    newtree.write(outfile_path, encoding="utf8")
 
 if __name__ == '__main__':
     main()
