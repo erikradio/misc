@@ -5,61 +5,85 @@ import copy, time, datetime
 import datetime, requests, json
 from fuzzywuzzy import fuzz, process
 
+#this script takes a shapefile and transforms it into a MODS record
+#syntax python scriptName nameOfShapefile
+
+
+def set_if_present(root, xpath, doc, key_to_set):
+    """
+    Note that this mutates doc, and returns a bool.
+
+    True if it added anything
+    False otherwise
+
+    These could be useful for debugging/stats generation
+    """
+    node_in_tree = root.find(xpath)
+    if node_in_tree is not None and node_in_tree.text is not None:
+        doc[key_to_set] = node_in_tree.text
+        return True
+
+    return False
+
+
 def getGeoMetadata(infile_path):
     tree=ET.parse(infile_path)
     root=tree.getroot()
     doc = {}
     # print(title)
-    title = root.find('idinfo/citation/citeinfo/title').text
-    # print(title)
-    doc['filename'] = infile_path
-    doc['title'] = title
-    software = root.find('idinfo/native').text
-    doc['software'] = software
-    issueDate = root.find('idinfo/citation/citeinfo/pubdate').text
-    doc['issueDate'] = issueDate
-    source = root.find('idinfo/citation/citeinfo/onlink').text
-    doc['source'] = source
-    publisher = root.find('idinfo/citation/citeinfo/origin').text
-    doc['publisher'] = publisher
-    creator = root.find('dataIdInfo/idCredit').text
-    doc['creator'] = creator
-    abstract = root.find('idinfo/descript/abstract').text
-    purpose = root.find('idinfo/descript/purpose').text
-    suppl = root.find('idinfo/descript/supplinf').text
-    enttypepd = root.find('eainfo/detailed/enttyp/enttypd').text
-    doc['abstract'] = abstract+purpose+suppl+enttypepd
 
-    westbc = root.find('idinfo/spdom/bounding/westbc').text.strip('-')
-    eastbc = root.find('idinfo/spdom/bounding/southbc').text.strip('-')
-    northbc = root.find('idinfo/spdom/bounding/eastbc').text.strip('-')
-    southbc = root.find('idinfo/spdom/bounding/northbc').text.strip('-')
-    coordinates = 'W'+westbc+','+'W'+eastbc+','+'N'+northbc+','+'N'+southbc
+    doc['filename'] = infile_path
+    set_if_present(root, 'idinfo/citation/citeinfo/title', doc, 'title')
+    set_if_present(root, 'idinfo/native', doc, 'software')
+    set_if_present(root, 'idinfo/citation/citeinfo/pubdate', doc, 'issueDate')
+    set_if_present(root, 'idinfo/citation/citeinfo/onlink', doc, 'source')
+    set_if_present(root, 'idinfo/citation/citeinfo/origin', doc, 'publisher')
+    set_if_present(root, 'dataIdInfo/idCredit', doc, 'creator')
+    set_if_present(root, 'idinfo/descript/abstract', doc, 'abstract')
+
+
+    abstract_node = root.find('idinfo/descript/abstract')
+    purpose_node = root.find('idinfo/descript/purpose')
+    suppl_node = root.find('idinfo/descript/supplinf')
+    enttyped_node = root.find('eainfo/detailed/enttyp/enttypd')
+    # This list comprehension sorts out the None elements and crams together the .text strings
+    constructed_abstract = "".join(
+        [x.text for x in [abstract_node, purpose_node, suppl_node, enttyped_node] if x is not None]
+    )
+    doc['abstract'] = constructed_abstract
+
+    #fix this
+    westbc = root.find('idinfo/spdom/bounding/westbc')
+    eastbc = root.find('idinfo/spdom/bounding/southbc')
+    northbc = root.find('idinfo/spdom/bounding/eastbc')
+    southbc = root.find('idinfo/spdom/bounding/northbc')
+    coordinates = "".join(
+        [x.text for x in [westbc, eastbc, northbc, southbc] if x is not None]
+    )
+    # coordinates = 'W'+westbc+','+'W'+eastbc+','+'N'+northbc+','+'N'+southbc
     doc['coordinates'] = coordinates
+    #
 
     doc['topics'] =[]
     keywords = root.findall('idinfo/keywords/theme/themekey')
-    for x in keywords:
-        key = x.text
-        doc['topics'].append(key)
-
-
-
-
+    if len(keywords) > 0:
+        for x in keywords:
+            key = x.text
+            doc['topics'].append(key)
 
     doc['places'] = []
     places = root.findall('idinfo/keywords/place/placekey')
-    for x in places:
-        key = x.text
-        doc['places'].append(key)
+    if len(places) > 0:
+        for x in places:
+            key = x.text
+            doc['places'].append(key)
+            # print(doc['places'])
 
-    cityCreated = root.find('distinfo/distrib/cntinfo/cntaddr/city').text
-    stateCreated = root.find('metainfo/metc/cntinfo/cntaddr/state').text
-    if len(cityCreated) > 0:
-        placeCreated = stateCreated+'--'+cityCreated
-        doc['placeCreated'] = placeCreated
-    else:
-        doc['placeCreated'] = stateCreated
+    set_if_present(root, 'distinfo/distrib/cntinfo/cntaddr/city', doc, 'city')
+    set_if_present(root, 'metainfo/metc/cntinfo/cntaddr/state', doc, 'state')
+
+
+
 
 
     searchkeys = root.findall('dataIdInfo/searchKeys/keyword')
@@ -69,6 +93,8 @@ def getGeoMetadata(infile_path):
 
     uses = root.find('idinfo/useconst').text
     doc['note'] = uses
+    # for x,y in doc.items():
+    #     print(x,y)
     return doc
 
 def makeMods(doc):
@@ -119,7 +145,11 @@ def makeMods(doc):
 
     creator = SubElement(root, 'mods:name')
     creatorTerm = SubElement(creator, 'mods:namePart')
-    creatorTerm.text = doc['creator']
+    try:
+        creatorTerm.text = doc['creator']
+    except KeyError:
+        pass
+
     creatorRole=SubElement(creator,'mods:role')
     creatorRoleTerm = SubElement(creatorRole,'mods:roleTerm')
     creatorRoleTerm.set('type','text')
@@ -137,13 +167,22 @@ def makeMods(doc):
     dateCreated.set('encoding', 'w3cdtf')
     dateIssued = SubElement(originInfo,'mods:dateIssued')
     dateIssued.set('encoding', 'w3cdtf')
-    dateIssued.text = doc['issueDate']
-    #
-    #
-    placeCreated = SubElement(originInfo, 'mods:place')
+    try:
+        dateIssued.text = doc['issueDate']
+    except KeyError:
+        pass
 
+
+    placeCreated = SubElement(originInfo, 'mods:place')
     placeTerm = SubElement(placeCreated, 'mods:placeTerm')
-    placeTerm.text = doc['placeCreated']
+    try:
+        placeTerm.text = doc['state']+'--'+doc['city']
+    except KeyError:
+        pass
+    try:
+        placeTerm.text = doc['state']
+    except KeyError:
+        pass
 
     #
     pub = SubElement(originInfo, 'mods:publisher')
@@ -153,18 +192,21 @@ def makeMods(doc):
     languageTerm.set('type','code')
     languageTerm.set('authority', 'iso639-2b')
     languageTerm.text= 'eng'
-    #
+
     for term in doc['topics']:
         # print(subject)
-        subject = SubElement(root,'mods:subject')
-        topic = SubElement(subject, 'mods:topic')
-        topic.text = term
+
         term= term.lower()
         url='http://fast.oclc.org/searchfast/fastsuggest?query='+term+'&queryIndex=suggestall&queryReturn=suggestall,idroot,auth,tag,type,raw,breaker,indicator&suggest=autoSubject&rows=20'
 
         r = requests.get(url)
-        res = json.loads(r.text)
-        jsonDocs=res['response']['docs']
+        r.raise_for_status()
+        rjson = r.json()
+        # print(r.text)
+        jsonDocs = rjson['response']['docs']
+
+
+
         # print(docs)
         for x in jsonDocs:
             suggestLower = x['suggestall'][0].lower()
@@ -172,33 +214,65 @@ def makeMods(doc):
 
             score=fuzz.token_sort_ratio(term,suggestLower)
             if score > 80:
+                subject = SubElement(root,'mods:subject')
+                topic = SubElement(subject, 'mods:topic')
                 subject.set('authority', 'fast')
                 topic.text = x['suggestall'][0]
                 newFast = fastID.replace('fst','')
-                subject.set('authorityURI','http://id.worldcat.org/fast/'+newFast)
+                subject.set('valueURI','http://id.worldcat.org/fast/'+newFast)
+            else:
+                subject = SubElement(root,'mods:subject')
+                topic = SubElement(subject, 'mods:topic')
+                topic.text = term
+
+
+
 
 
     for place in doc['places']:
-        subject = SubElement(root,'mods:subject')
-        placeTerm = SubElement(subject, 'mods:geographic')
+
         # placeTerm.text = place
-        place = place.lower()
-        url='http://fast.oclc.org/searchfast/fastsuggest?query='+place+'&queryIndex=suggest51&queryReturn=suggestall,idroot,auth,tag,type,raw,breaker,indicator&suggest=autoSubject&rows=20'
+        lowerPlace = place.lower()
+        url='http://fast.oclc.org/searchfast/fastsuggest?query='+place+'&queryIndex=suggest51&queryReturn=suggestall,idroot,auth,tag,type,raw,breaker,indicator&suggest=autoSubject&rows=10'
 
         r = requests.get(url)
-        res = json.loads(r.text)
-        jsonDocs=res['response']['docs']
+        r.raise_for_status()
+        # print(r.text)
+        rjson = r.json()
+
+        jsonDocs = rjson['response']['docs']
         # print(docs)
+
+        scoreDict={}
         for x in jsonDocs:
+            suggest = x['suggestall'][0]
             suggestLower = x['suggestall'][0].lower()
             fastID = x['idroot']
 
-            score=fuzz.token_sort_ratio(place,suggestLower)
-            if score > 80:
-                subject.set('authority', 'fast')
-                placeTerm.text = x['suggestall'][0]
-                newFast = fastID.replace('fst','')
-                subject.set('authorityURI','http://id.worldcat.org/fast/'+newFast)
+            score=fuzz.token_sort_ratio(lowerPlace,suggestLower)
+            scoreDict[score] = fastID, suggest
+            
+        # if max(scoreList) > 80:
+        #     subject = SubElement(root,'mods:subject')
+        #     subject.set('authority', 'fast')
+        #     subject.set('valueURI','http://id.worldcat.org/fast/'+newFast)
+        #     placeTerm = SubElement(subject, 'mods:geographic')
+        #     placeTerm.text = x['suggestall'][0]
+        #     newFast = fastID.replace('fst','')
+        # else:
+        #     pass
+            # if score > 80:
+            #     subject = SubElement(root,'mods:subject')
+            #     subject.set('authority', 'fast')
+            #     subject.set('valueURI','http://id.worldcat.org/fast/'+newFast)
+            #     placeTerm = SubElement(subject, 'mods:geographic')
+            #     placeTerm.text = x['suggestall'][0]
+            #     newFast = fastID.replace('fst','')
+
+            # else:
+            #     subject = SubElement(root,'mods:subject')
+            #     placeTerm = SubElement(subject, 'mods:geographic')
+            #     placeTerm.text = place
 
 
     latlong = SubElement(root, 'mods:subject')
@@ -218,7 +292,10 @@ def makeMods(doc):
     form.set('authorityURI','http://id.loc.gov/authorities/genreForms/gf2011026721')
     form.text = 'Vector data'
     digNote = SubElement(physDesc,'mods:note')
-    digNote.text = doc['software']
+    try:
+        digNote.text = doc['software']
+    except KeyError:
+        pass
 
     identifier = SubElement(root,'mods:identifier')
     identifier.set('type','local')
