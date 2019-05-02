@@ -251,8 +251,13 @@ def makeMods(doc):
 
             score=fuzz.token_sort_ratio(lowerPlace,suggestLower)
             scoreDict[score] = fastID, suggest
-            
-        # if max(scoreList) > 80:
+        # print(scoreDict.keys())
+        if scoreDict.keys() and scoreDict[max(scoreDict.keys())] > 80:
+            print(scoreDict)
+
+        # print(scoreDict[max(scoreDict.keys())])
+        # if max(scoreDict) > 80:
+        #     print(scoreDict)
         #     subject = SubElement(root,'mods:subject')
         #     subject.set('authority', 'fast')
         #     subject.set('valueURI','http://id.worldcat.org/fast/'+newFast)
