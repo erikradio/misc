@@ -25,6 +25,43 @@ def set_if_present(root, xpath, doc, key_to_set):
 
     return False
 
+def get_fast_uri(doc):
+    # print(doc)
+    jsonDocs = {}
+    for term in doc['topics']:
+        # print(subject)
+
+        term= term.lower()
+        url='http://fast.oclc.org/searchfast/fastsuggest?query='+term+'&queryIndex=suggestall&queryReturn=suggestall,idroot,auth,tag,type,raw,breaker,indicator&suggest=autoSubject&rows=20'
+
+        r = requests.get(url)
+        r.raise_for_status()
+        rjson = r.json()
+        # print(r.text)
+        jsonDocs = rjson['response']['docs']
+
+        maxScore = 0.0
+        fastValues = None
+
+        # scoreDict = {}
+        for x in jsonDocs:
+            suggest = x['suggestall'][0]
+            suggestLower = x['suggestall'][0].lower()
+            fastID = x['idroot']
+
+            score=fuzz.token_sort_ratio(term,suggestLower)
+            if score > 80 and score > maxScore:
+                maxScore = score
+                fastValues = fastID, suggest
+                print(maxScore,fastValues)
+        #     scoreDict[score] = fastID, suggest
+        #
+        # ppp = scoreDict[max(scoreDict.keys())] if max(scoreDict.keys()) > 80 else None
+        # print(ppp)
+        # if scoreDict.keys():
+        #     maxKey = max(k for k, v in scoreDict.items())
+
+
 
 def getGeoMetadata(infile_path):
     tree=ET.parse(infile_path)
@@ -140,8 +177,17 @@ def makeMods(doc):
     #         newFast = fastID.replace('fst','')
     #         pub.set('authorityURI','http://id.worldcat.org/fast/'+newFast)
 
-
-
+    # fastSubject = get_fast_uri(doc)
+    # print(fastSubject)
+    # def add(x, y):
+    # answer = x+y
+    # return answer
+    #
+    # def main():
+    #     foo = 1
+    #     bar = 2
+    #     baz = add(foo, bar)
+    #     print(baz)
 
     creator = SubElement(root, 'mods:name')
     creatorTerm = SubElement(creator, 'mods:namePart')
@@ -193,67 +239,87 @@ def makeMods(doc):
     languageTerm.set('authority', 'iso639-2b')
     languageTerm.text= 'eng'
 
-    for term in doc['topics']:
-        # print(subject)
-
-        term= term.lower()
-        url='http://fast.oclc.org/searchfast/fastsuggest?query='+term+'&queryIndex=suggestall&queryReturn=suggestall,idroot,auth,tag,type,raw,breaker,indicator&suggest=autoSubject&rows=20'
-
-        r = requests.get(url)
-        r.raise_for_status()
-        rjson = r.json()
-        # print(r.text)
-        jsonDocs = rjson['response']['docs']
-
-
-
-        # print(docs)
-        for x in jsonDocs:
-            suggestLower = x['suggestall'][0].lower()
-            fastID = x['idroot']
-
-            score=fuzz.token_sort_ratio(term,suggestLower)
-            if score > 80:
-                subject = SubElement(root,'mods:subject')
-                topic = SubElement(subject, 'mods:topic')
-                subject.set('authority', 'fast')
-                topic.text = x['suggestall'][0]
-                newFast = fastID.replace('fst','')
-                subject.set('valueURI','http://id.worldcat.org/fast/'+newFast)
-            else:
-                subject = SubElement(root,'mods:subject')
-                topic = SubElement(subject, 'mods:topic')
-                topic.text = term
+    jsonDocs={}
+    get_fast_uri(doc)
+    # for term in doc['topics']:
+    #     # print(subject)
+    #
+    #     term= term.lower()
+    #     url='http://fast.oclc.org/searchfast/fastsuggest?query='+term+'&queryIndex=suggestall&queryReturn=suggestall,idroot,auth,tag,type,raw,breaker,indicator&suggest=autoSubject&rows=20'
+    #
+    #     r = requests.get(url)
+    #     r.raise_for_status()
+    #     rjson = r.json()
+    #     # print(r.text)
+    #     jsonDocs = rjson['response']['docs']
+    #
+    #
+    #
+    #     # print(docs)
+    #     scoreDict = {}
+    #     for x in jsonDocs:
+    #         suggest = x['suggestall'][0]
+    #         suggestLower = x['suggestall'][0].lower()
+    #         fastID = x['idroot']
+    #
+    #         score=fuzz.token_sort_ratio(term,suggestLower)
+    #         scoreDict[score] = fastID, suggest
+    #     if scoreDict.keys():
+    #         maxKey = max(k for k, v in scoreDict.items())
 
 
 
+            # if scoreDict.keys() and max(scoreDict.keys()) > 80:
+            #
+            #     subject = SubElement(root,'mods:subject')
+            #     topic = SubElement(subject, 'mods:topic')
+            #     subject.set('authority', 'fast')
+            #     # topic.text = x['suggestall'][0]
+            #     topic.text = suggest
+            #     newFast = fastID.replace('fst','')
+            #     subject.set('valueURI','http://id.worldcat.org/fast/'+newFast)
 
 
-    for place in doc['places']:
 
-        # placeTerm.text = place
-        lowerPlace = place.lower()
-        url='http://fast.oclc.org/searchfast/fastsuggest?query='+place+'&queryIndex=suggest51&queryReturn=suggestall,idroot,auth,tag,type,raw,breaker,indicator&suggest=autoSubject&rows=10'
 
-        r = requests.get(url)
-        r.raise_for_status()
-        # print(r.text)
-        rjson = r.json()
 
-        jsonDocs = rjson['response']['docs']
-        # print(docs)
 
-        scoreDict={}
-        for x in jsonDocs:
-            suggest = x['suggestall'][0]
-            suggestLower = x['suggestall'][0].lower()
-            fastID = x['idroot']
-
-            score=fuzz.token_sort_ratio(lowerPlace,suggestLower)
-            scoreDict[score] = fastID, suggest
-        # print(scoreDict.keys())
-        if scoreDict.keys() and scoreDict[max(scoreDict.keys())] > 80:
-            print(scoreDict)
+        # data = [(1, dog), (2, cat), (2, mouse), (3, horse)]
+        #
+        # scoreDict = {}
+        # for x in data:
+        #     if not scoreDict.get(x[0]):
+        #         scoreDict[x[0]] = []
+        #     scoreDict[x[0]].append(x[1])
+        #
+        #  for x in scoreDict:
+        #     print("Key: " + str(x))
+        #     print("Value: " + str(scoreDict[x]))
+    # for place in doc['places']:
+    #
+    #     # placeTerm.text = place
+    #     lowerPlace = place.lower()
+    #     url='http://fast.oclc.org/searchfast/fastsuggest?query='+place+'&queryIndex=suggest51&queryReturn=suggestall,idroot,auth,tag,type,raw,breaker,indicator&suggest=autoSubject&rows=10'
+    #
+    #     r = requests.get(url)
+    #     r.raise_for_status()
+    #     # print(r.text)
+    #     rjson = r.json()
+    #
+    #     jsonDocs = rjson['response']['docs']
+    #     # print(docs)
+    #
+    #     scoreDict={}
+    #     for x in jsonDocs:
+    #         suggest = x['suggestall'][0]
+    #         suggestLower = x['suggestall'][0].lower()
+    #         fastID = x['idroot']
+    #
+    #         score=fuzz.token_sort_ratio(lowerPlace,suggestLower)
+    #         scoreDict[score] = fastID, suggest
+    #     # print(scoreDict.keys())
+    #     if scoreDict.keys() and scoreDict[max(scoreDict.keys())] > 80:
+    #         print(scoreDict)
 
         # print(scoreDict[max(scoreDict.keys())])
         # if max(scoreDict) > 80:
