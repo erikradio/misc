@@ -25,11 +25,11 @@ def set_if_present(root, xpath, doc, key_to_set):
 
     return False
 
-def get_fast_uri(doc):
+def get_topic_uri(doc):
     # print(doc)
+    results = []
     jsonDocs = {}
     for term in doc['topics']:
-        # print(subject)
 
         term= term.lower()
         url='http://fast.oclc.org/searchfast/fastsuggest?query='+term+'&queryIndex=suggestall&queryReturn=suggestall,idroot,auth,tag,type,raw,breaker,indicator&suggest=autoSubject&rows=20'
@@ -39,12 +39,10 @@ def get_fast_uri(doc):
         rjson = r.json()
         # print(r.text)
         jsonDocs = rjson['response']['docs']
-
         maxScore = 0.0
         fastValues = None
-
-        # scoreDict = {}
         for x in jsonDocs:
+            # print(x)
             suggest = x['suggestall'][0]
             suggestLower = x['suggestall'][0].lower()
             fastID = x['idroot']
@@ -53,14 +51,41 @@ def get_fast_uri(doc):
             if score > 80 and score > maxScore:
                 maxScore = score
                 fastValues = fastID, suggest
-                print(maxScore,fastValues)
-        #     scoreDict[score] = fastID, suggest
-        #
-        # ppp = scoreDict[max(scoreDict.keys())] if max(scoreDict.keys()) > 80 else None
-        # print(ppp)
-        # if scoreDict.keys():
-        #     maxKey = max(k for k, v in scoreDict.items())
+                results.append(fastValues)
+    # print(results)
+    return results
 
+def get_place_uri(doc):
+    # print(doc)
+    results = []
+    jsonDocs = {}
+    for term in doc['places']:
+
+        term= term.lower()
+        url='http://fast.oclc.org/searchfast/fastsuggest?query='+term+'&queryIndex=suggest51&queryReturn=suggestall,idroot,auth,tag,type,raw,breaker,indicator&suggest=autoSubject&rows=20'
+
+        r = requests.get(url)
+        r.raise_for_status()
+        rjson = r.json()
+        # print(r.text)
+        jsonDocs = rjson['response']['docs']
+        maxScore = 0.0
+        fastValues = None
+
+
+        for x in jsonDocs:
+            # print(x)
+            suggest = x['suggestall'][0]
+            suggestLower = x['suggestall'][0].lower()
+            fastID = x['idroot']
+
+            score=fuzz.token_sort_ratio(term,suggestLower)
+            if score > 80 and score > maxScore:
+                maxScore = score
+                fastValues = fastID, suggest
+                results.append(fastValues)
+    # print(results)
+    return results
 
 
 def getGeoMetadata(infile_path):
@@ -89,16 +114,15 @@ def getGeoMetadata(infile_path):
     )
     doc['abstract'] = constructed_abstract
 
-    #fix this
-    westbc = root.find('idinfo/spdom/bounding/westbc')
-    eastbc = root.find('idinfo/spdom/bounding/southbc')
-    northbc = root.find('idinfo/spdom/bounding/eastbc')
-    southbc = root.find('idinfo/spdom/bounding/northbc')
-    coordinates = "".join(
-        [x.text for x in [westbc, eastbc, northbc, southbc] if x is not None]
-    )
-    # coordinates = 'W'+westbc+','+'W'+eastbc+','+'N'+northbc+','+'N'+southbc
+    
+    westbc = 'W'+root.find('idinfo/spdom/bounding/westbc').text.strip('-')
+    eastbc = 'W'+root.find('idinfo/spdom/bounding/southbc').text.strip('-')
+    northbc = 'N'+root.find('idinfo/spdom/bounding/eastbc').text.strip('-')
+    southbc = 'N'+root.find('idinfo/spdom/bounding/northbc').text.strip('-')
+    coordinates = westbc+','+eastbc+','+northbc+','+southbc
     doc['coordinates'] = coordinates
+    
+
     #
 
     doc['topics'] =[]
@@ -118,10 +142,6 @@ def getGeoMetadata(infile_path):
 
     set_if_present(root, 'distinfo/distrib/cntinfo/cntaddr/city', doc, 'city')
     set_if_present(root, 'metainfo/metc/cntinfo/cntaddr/state', doc, 'state')
-
-
-
-
 
     searchkeys = root.findall('dataIdInfo/searchKeys/keyword')
     for x in searchkeys:
@@ -239,117 +259,27 @@ def makeMods(doc):
     languageTerm.set('authority', 'iso639-2b')
     languageTerm.text= 'eng'
 
-    jsonDocs={}
-    get_fast_uri(doc)
-    # for term in doc['topics']:
-    #     # print(subject)
-    #
-    #     term= term.lower()
-    #     url='http://fast.oclc.org/searchfast/fastsuggest?query='+term+'&queryIndex=suggestall&queryReturn=suggestall,idroot,auth,tag,type,raw,breaker,indicator&suggest=autoSubject&rows=20'
-    #
-    #     r = requests.get(url)
-    #     r.raise_for_status()
-    #     rjson = r.json()
-    #     # print(r.text)
-    #     jsonDocs = rjson['response']['docs']
-    #
-    #
-    #
-    #     # print(docs)
-    #     scoreDict = {}
-    #     for x in jsonDocs:
-    #         suggest = x['suggestall'][0]
-    #         suggestLower = x['suggestall'][0].lower()
-    #         fastID = x['idroot']
-    #
-    #         score=fuzz.token_sort_ratio(term,suggestLower)
-    #         scoreDict[score] = fastID, suggest
-    #     if scoreDict.keys():
-    #         maxKey = max(k for k, v in scoreDict.items())
+    # print(get_fast_uri(doc))
+    for result in get_topic_uri(doc):
+        subject = SubElement(root,'mods:subject')
+        topic = SubElement(subject, 'mods:topic')
+        subject.set('authority', 'fast')
+        topic.text = result[1]
+        subject.set('valueURI','http://id.worldcat.org/fast/'+result[0])
 
-
-
-            # if scoreDict.keys() and max(scoreDict.keys()) > 80:
-            #
-            #     subject = SubElement(root,'mods:subject')
-            #     topic = SubElement(subject, 'mods:topic')
-            #     subject.set('authority', 'fast')
-            #     # topic.text = x['suggestall'][0]
-            #     topic.text = suggest
-            #     newFast = fastID.replace('fst','')
-            #     subject.set('valueURI','http://id.worldcat.org/fast/'+newFast)
-
-
-
-
-
-
-        # data = [(1, dog), (2, cat), (2, mouse), (3, horse)]
-        #
-        # scoreDict = {}
-        # for x in data:
-        #     if not scoreDict.get(x[0]):
-        #         scoreDict[x[0]] = []
-        #     scoreDict[x[0]].append(x[1])
-        #
-        #  for x in scoreDict:
-        #     print("Key: " + str(x))
-        #     print("Value: " + str(scoreDict[x]))
-    # for place in doc['places']:
-    #
-    #     # placeTerm.text = place
-    #     lowerPlace = place.lower()
-    #     url='http://fast.oclc.org/searchfast/fastsuggest?query='+place+'&queryIndex=suggest51&queryReturn=suggestall,idroot,auth,tag,type,raw,breaker,indicator&suggest=autoSubject&rows=10'
-    #
-    #     r = requests.get(url)
-    #     r.raise_for_status()
-    #     # print(r.text)
-    #     rjson = r.json()
-    #
-    #     jsonDocs = rjson['response']['docs']
-    #     # print(docs)
-    #
-    #     scoreDict={}
-    #     for x in jsonDocs:
-    #         suggest = x['suggestall'][0]
-    #         suggestLower = x['suggestall'][0].lower()
-    #         fastID = x['idroot']
-    #
-    #         score=fuzz.token_sort_ratio(lowerPlace,suggestLower)
-    #         scoreDict[score] = fastID, suggest
-    #     # print(scoreDict.keys())
-    #     if scoreDict.keys() and scoreDict[max(scoreDict.keys())] > 80:
-    #         print(scoreDict)
-
-        # print(scoreDict[max(scoreDict.keys())])
-        # if max(scoreDict) > 80:
-        #     print(scoreDict)
-        #     subject = SubElement(root,'mods:subject')
-        #     subject.set('authority', 'fast')
-        #     subject.set('valueURI','http://id.worldcat.org/fast/'+newFast)
-        #     placeTerm = SubElement(subject, 'mods:geographic')
-        #     placeTerm.text = x['suggestall'][0]
-        #     newFast = fastID.replace('fst','')
-        # else:
-        #     pass
-            # if score > 80:
-            #     subject = SubElement(root,'mods:subject')
-            #     subject.set('authority', 'fast')
-            #     subject.set('valueURI','http://id.worldcat.org/fast/'+newFast)
-            #     placeTerm = SubElement(subject, 'mods:geographic')
-            #     placeTerm.text = x['suggestall'][0]
-            #     newFast = fastID.replace('fst','')
-
-            # else:
-            #     subject = SubElement(root,'mods:subject')
-            #     placeTerm = SubElement(subject, 'mods:geographic')
-            #     placeTerm.text = place
+    # for result in get_place_uri(doc):
+    #     subject = SubElement(root,'mods:subject')
+    #     subject.set('authority', 'fast')
+    #     placeTerm = SubElement(subject, 'mods:geographic')
+    #     placeTerm.text = result[1]
+    #     placeTerm.set('valueURI','http://id.worldcat.org/fast/'+result[0])
 
 
     latlong = SubElement(root, 'mods:subject')
     carto = SubElement(latlong,'mods:cartographics')
     cartoCoord = SubElement(carto, 'mods:coordinates')
     cartoCoord.text = doc['coordinates']
+    # print(doc['coordinates'])
 
 
 
