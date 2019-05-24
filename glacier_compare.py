@@ -23,7 +23,7 @@ with open(sys.argv[1]) as wikifile,  open(sys.argv[2]) as localGlacier, open('ne
 
 	localName = {}
 	for row in localreader:
-		key = row['Glacier Name (FINAL)']
+		key = row['Glacier Name']
 		localName[key] = row
 
 
@@ -31,14 +31,16 @@ with open(sys.argv[1]) as wikifile,  open(sys.argv[2]) as localGlacier, open('ne
 
 		if name in glaciers:
 			newWID = glaciers[name][0]
+			newCoord = glaciers[name][1]
+			print(newCoord)
 			localName[name]['wikidata'] = newWID
+			localName[name]['wikicoord'] = newCoord
 		elif KeyError:
 			continue
 
 	# print(localName)
-	fieldnames=['Glacier Name (FINAL)', 'Country','State/Province/First Order Administrative Area','Latitude','Longitude','Coverage Spatial','GLIMS ID','Historical or Variant Name',
-	'Documentation Notes - CLEAN', 'Documentation Notes','wikidata']
+	fieldnames=['Glacier Name', 'Country','State/Province/First Order Administrative Area','Latitude','Longitude','Coverage Spatial','GLIMS ID','Historical or Variant Name',
+	'Documentation Notes - CLEAN', 'Documentation Notes','wikidata','wikicoord']
 	writer = csv.DictWriter(csv_file,fieldnames=fieldnames)
 	for key in localName.keys():
 		writer.writerow(localName[key])
-
