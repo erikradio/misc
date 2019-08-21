@@ -1,17 +1,9 @@
 import requests, json, csv, sys
-from fuzzywuzzy import fuzz, process
-from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 
-key = ''
-secret = ''
 
-#https://libraries.colorado.edu:443/iii/sierra-api/v5/bibs/10252291/marc
-
-with open(sys.argv[1],'rU') as csvFile:
-
-    # writer = csv.DictWriter(outcsv, fieldnames = ["filename", "original_term", "fast_term", "fast_id", "score"])
-    # writer.writeheader()
-    reader = csv.DictReader(csvFile)
+def get_session():
+    key = ''
+    secret = ''
     headers={"Content-Type":  "application/json"}
 
     s = requests.Session()
@@ -21,33 +13,68 @@ with open(sys.argv[1],'rU') as csvFile:
     # print(bearer_token)
     # get auth token out of the response
     s.headers["Authorization"] = "Bearer {}".format(bearer_token)
-    # s.get( # now that is in the session headers - so transparently on all other requests made with this session object
-    for row in reader:
-        # print(row)
-        # print(row['PermaLink'])
+    return s
 
-        bib = row['PermaLink'].replace('http://libraries.colorado.edu/record=b','')
-        bib = bib[:-3]
-        # print(bib)
-        url='https://libraries.colorado.edu:443/iii/sierra-api/v5/bibs/'+bib
-        r = s.get(url)
+
+
+def get_count(s, bibLevel):
+
+    jsonQuery = {
+      "target": {
+        "record": {
+          "type": "bib"
+        },
+        "id": 30
+      },
+      "expr": {
+        "op": "equals",
+        "operands": [
+          bibLevel,
+          ""
+        ]
+      }
+    }
+
+
+    offset = 0
+    url = 'https://libraries.colorado.edu:443/iii/sierra-api/v5/bibs/query?offset='+str(offset)+'&limit=1000'
+    while True:
+        r = s.post(url, json=jsonQuery)
+        r.raise_for_status()
         rjson = r.json()
-        print(rjson)
-    # test='http://fast.oclc.org/searchfast/fastsuggest?&query=hog&queryIndex=suggestall&queryReturn=suggestall,idroot,auth,tag,type,raw,breaker,indicator&suggest=autoSubject&rows=10'
-    #http://fast.oclc.org/searchfast/fastsuggest?query=dog&queryIndex=suggestall@queryReturn=suggestall,idroot,auth,tag,type,raw,breaker,indicator&suggest=autoSubject&rows=3&callback=testcall
-    # terms=['denver']
-    # for term in terms:
-    #     url='http://fast.oclc.org/searchfast/fastsuggest?query='+term+'&queryIndex=suggestall&queryReturn=suggestall,idroot,auth,tag,type,raw,breaker,indicator&suggest=autoSubject&rows=20'
-    #
-    #     r = requests.get(url)
-    #     res = json.loads(r.text)
-    #     docs=res['response']['docs']
-    #     # print(docs)
-    #     for x in docs:
-    #         suggest = x['suggestall'][0].lower()
-    #         fastID = x['idroot']
-    #
-    #         score=fuzz.token_sort_ratio(term,suggest)
-    #         print(score)
-    #         writer.writerow({'filename': 'test', 'original_term': term, 'fast_term': suggest, 'fast_id': fastID, 'score':score})
-                # print(fuzz.ratio(term,suggest))
+        currentCount = rjson['total']
+
+        offset = offset +currentCount
+        url = 'https://libraries.colorado.edu:443/iii/sierra-api/v5/bibs/query?offset='+str(offset)+'&limit=1000'
+        # print(url)
+
+        # print(currentCount)
+        if currentCount < 1000:
+            break
+        # if peak(s, url) is False:
+        #     print(rjson)
+        #     break
+    return offset
+
+
+def peak(s, url):
+    r = s.head(url)
+    try:
+        r.raise_for_status()  # Not a 404 - the next page exists
+        return True
+    except:
+        return False
+
+
+def main():
+    bibLevels = ["a","o","t"]
+    session = get_session()
+    for x in bibLevels:
+        count = get_count(session, x)
+        print(x + ": " + str(count))
+
+
+
+
+if __name__ == '__main__':
+    main()
