@@ -31,36 +31,30 @@ def get_isbn(s, isbn):
         bibData['bibID'] = 'Not Available'
         bibData['isbn'] = isbn
 
-    if rjson['count'] > 0:
+    if rjson['count'] == 1:
         bibData['bibID'] = rjson['entries'][0]['bib']['id']
         bibData['isbn'] = isbn
         bibData['title'] = rjson['entries'][0]['bib']['title']
         bibData['author'] = rjson['entries'][0]['bib']['author']
         bibData['format'] = rjson['entries'][0]['bib']['materialType']['value']
         bibData['locations'] = rjson['entries'][0]['bib']['locations'][0]['name']
-
-
-        itemURL = 'https://libraries.colorado.edu:443/iii/sierra-api/v5/items/'+bibData['bibID']+'?fields=status,callNumber'
-        r2 = s.get(itemURL)
-        rjson2 = r2.json()
+        # print(rjson['entries'][0]['bib']['materialType']['value'])
+        if rjson['entries'][0]['bib']['materialType']['value'] != 'eBooks' :
+            itemURL = 'https://libraries.colorado.edu:443/iii/sierra-api/v5/items/?bibIds='+bibData['bibID']
+            # itemURL = 'https://libraries.colorado.edu:443/iii/sierra-api/v5/items/'+bibData['bibID']+'?fields=status,callNumber'
+            r2 = s.get(itemURL)
+            rjson2 = r2.json()
+            # print(rjson2)
+            if 'entries' in rjson2:
+                for entry in rjson2['entries']:
+                    if 'location' in entry:
+                        bibData['availability'] = entry['location']['name']+'-'+entry['status']['display']+'|'
+                    if 'callNumber' in entry:
+                        bibData['callNumber'] = entry['callNumber']
+                    print(bibData['availability'])
         # print(rjson2)
-        if 'status' in rjson2:
 
-            bibData['availability'] = rjson2['status']['display']
-        if 'callNumber' in rjson2:
-            bibData['callNumber'] = rjson2['callNumber']
-        # print(rjson2)
-            
     return(bibData)
-
-# def peak(s, url):
-#     r = s.head(url)
-#     try:
-#         r.raise_for_status()  # Not a 404 - the next page exists
-#         return True
-#     except:
-#         return False
-
 
 def main():
     ts = time.time()
