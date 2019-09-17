@@ -17,25 +17,11 @@ date=sys.argv[1]
 # logging.basicConfig(level="DEBUG")
 
 
-newFile=open('uacr_'+date+'.xml','w')
+newFile=open('cub_'+date+'.xml','w')
 
-sickle = Sickle('http://www.duo.uio.no/oai/request')
-recs = sickle.ListRecords(metadataPrefix="oai_dc")
+sickle = Sickle('https://oai.datacite.org/oai')
+recs = sickle.ListRecords(metadataPrefix="datacite", set='CUB')
 for r in recs:
     newFile.write(str(r))
     print (r)
 
-# sickle = Sickle('http://arizona.openrepository.com/arizona/oai/request?')
-# sets = sickle.ListSets()  # gets all sets
-# for recs in sets:
-#     for rec in recs:
-#         # print(rec)
-#         if rec[0] == 'setSpec':
-#             try:
-#                 records = sickle.ListRecords(metadataPrefix='oai_dc', set=rec[1][0], ignore_deleted=True)
-#                 records.next
-#                 for rec in records:
-#                     print(rec)
-#                     newFile.write(str(rec))
-#             except IOError:
-#                 pass
