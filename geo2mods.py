@@ -318,12 +318,13 @@ def makeMods(doc):
 
 
     relatedItem = SubElement(root, 'mods:relatedItem')
-    relatedItem.set('type', 'otherVersion')
+    relatedItem.set('type', 'original')
     source = doc['source']
-    relatedItem.set('xlink:href', source)
-    relatedTitleInfo = SubElement(relatedItem,'mods:titleInfo')
-    relatedTitle = SubElement(relatedTitleInfo,'mods:title')
-    relatedTitle.text = doc['title']
+    relatedLoc = SubElement(relatedItem, 'mods:location')
+    relatedURL = SubElement(relatedLoc, 'mods:url')
+    relatedURL.set('access','object in context')
+    relatedURL.text = source
+    
 
 
 
